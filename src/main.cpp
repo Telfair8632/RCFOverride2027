@@ -1,4 +1,7 @@
 #include "main.h"
+#include "haws/motorcontrol/lift.h"
+#include "haws/motorcontrol/chassis.h"
+#include "haws/auto.h"
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -8,7 +11,11 @@
  */
 void initialize() {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
+	
+    motor_left.set_brake_mode(E_MOTOR_BRAKE_COAST);
+    motor_right.set_brake_mode(E_MOTOR_BRAKE_COAST);
+    motor_lift.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+    motor_arm.set_brake_mode(E_MOTOR_BRAKE_COAST);
 }
 
 /**
@@ -16,7 +23,11 @@ void initialize() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {}
+void disabled() {
+    chassis::move(0, 0);
+    lift::setTaskEnable(false);
+    pros::delay(10);
+}
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -40,8 +51,79 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+int autoSelection = 1;
+const char *autoTitles[] = {
+    "技能",
+    "红左1",
+    "红左2",
+    "红右1",
+    "红右2",
+    "蓝左1",
+    "蓝左2",
+    "蓝右1",
+    "蓝右2"};
 void autonomous() {
+    switch (autoSelection) {
+    case 0:
+        skill();
+        break;
+    case 1:
+        redLeft1();
+        break;
+    case 2:
+        redLeft2();
+        break;
+    case 3:
+        redRight1();
+        break;
+    case 4:
+        redRight2();
+        break;
+    case 5:
+        blueLeft1();
+        break;
+    case 6:
+        blueLeft2();
+        break;
+    case 7:
+        blueRight1();
+        break;
+    case 8:
+        blueRight2();
+        break;
+    }
+}
 
+// 是否进入选自动程序
+bool isSelectAuto = false;
+// 选自动
+void autoSelector() {
+    master.print(2, 0, "[ ]%s", autoTitles[autoSelection]);
+    while (isSelectAuto) {
+    //     // TODO: 显示陀螺仪传感器的值
+    //     // master.print(2, 20, "gyro:%.3f", gyro.get_rotation());
+        if (master.get_digital_new_press(DIGITAL_LEFT)) {
+            autoSelection = CONSTRAIN(autoSelection - 1, 0, 8);
+            master.clear_line(2);
+            pros::delay(50);
+            master.print(2, 0, "[ ]%s", autoTitles[autoSelection]);
+        }
+        if (master.get_digital_new_press(DIGITAL_RIGHT)) {
+            autoSelection = CONSTRAIN(autoSelection + 1, 0, 8);
+            master.clear_line(2);
+            pros::delay(50);
+            master.print(2, 0, "[ ]%s", autoTitles[autoSelection]);
+        }
+        if (master.get_digital_new_press(DIGITAL_B)) {
+            master.print(2, 1, "x");
+            pros::delay(800);
+            master.clear_line(2);
+            break;
+        }
+        pros::delay(50);
+    }
+    pros::delay(50);
+    isSelectAuto = false;
 }
 
 /*
@@ -58,60 +140,69 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol(){
-	
-	//mouth.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	
-    
-    pros::MotorGroup left_mg({-1,-3,21});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
-	pros::MotorGroup right_mg({2,7,-5});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
-	pros::MotorGroup arm({-8,9});//升降
-	pros::Motor mouth(-12);//夹子翻转
-    //pros::Motor abc(2);
-   pros::adi::DigitalOut push('B');
-    int pushS=1;
-    pros::adi::DigitalOut pusha('C');
-    int pushaS=0;
-    
-	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	mouth.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    bool clipState = true;
+    int curLiftGear = 0;
+
+    autoSelector();
+
 	while(true){
-		int dir=master.get_analog(ANALOG_LEFT_Y);
-		int turn=master.get_analog(ANALOG_RIGHT_X);
+		int ch3 = master.get_analog(ANALOG_LEFT_Y);
+		int ch1 =master.get_analog(ANALOG_RIGHT_X);
+        bool L1 = master.get_digital(DIGITAL_L1);
+        bool L2 = master.get_digital(DIGITAL_L2);
+        bool R1 = master.get_digital_new_press(DIGITAL_R1);
+        bool R2 = master.get_digital(DIGITAL_R2);
+        bool btnU = master.get_digital_new_press(DIGITAL_UP);
+        bool btnD = master.get_digital_new_press(DIGITAL_DOWN);
+        bool btnA = master.get_digital(DIGITAL_A);
+        bool btnB = master.get_digital(DIGITAL_B);
         
-		left_mg.move(dir+turn);
-		right_mg.move(dir-turn);
+		chassis::move(ch3 + ch1, ch3 - ch1);
         
-		if(master.get_digital(DIGITAL_L1)){
-			arm.move(55);
-		}else if(master.get_digital(DIGITAL_L2)){
-			arm.move(-55);
-		}else{
-			arm.move(0);
-			arm.brake();
-		}
-        if(master.get_digital(DIGITAL_A)){
-			mouth.move(100);
-            pros::delay(50); 
-            mouth.move(0);
-		}else if(master.get_digital(DIGITAL_B)){
-			mouth.move(-55);
-		}else{
-			mouth.move(0);
-			mouth.brake();
-		}
-       if(master.get_digital_new_press(DIGITAL_R1)){
-            pushS=1-pushS;
-            push.set_value(pushS);
-            }
-        if(master.get_digital_new_press(DIGITAL_R2)){
-            pushaS=1-pushaS;
-            pusha.set_value(pushaS);
-            }
-		
+        // 升降
+        if (L1) {
+            lift::lift(100);
+        } else if (L2) {
+            lift::lift(-100);
+        } else {
+            lift::lift(0);
+        }
+        if (btnU) {
+            lift::setGear(CONSTRAIN(lift::getGear() + 1, 0, 4));
+        }
+        if (btnD) {
+            lift::setGear(CONSTRAIN(lift::getGear() - 1, 0, 4));
+        }
+
+
+        // 小手
+        if (btnA) {
+            motor_arm.move(50);
+            motor_arm.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+        } else if (btnB) {
+            motor_arm.move(-50);
+            motor_arm.set_brake_mode(E_MOTOR_BRAKE_COAST);
+        } else {
+            motor_arm.brake();
+        }
+
+
+        // 夹子
+        if (R1) {
+            clipState = !clipState;
+            digit_clip.set_value(clipState);
+        }
+        
+
+        // 滚轮
+        if (R2) {
+            motor_roller.move(127);
+        } else {
+            motor_roller.move(0);
+        }
 
 		pros::delay(30);
 	}
-	}                          // Run for 20 ms then update
+}
 	
 
