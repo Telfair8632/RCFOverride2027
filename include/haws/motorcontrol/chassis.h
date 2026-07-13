@@ -6,6 +6,10 @@
 using namespace pros;
 
 namespace chassis {
+#define STRIGHT_ACC 4
+#define STRIGHT_MAX_V 100
+#define STRIGHT_MIN_V 25
+
 /**
  * @brief 重置所有底盘电机编码器
  */
@@ -24,6 +28,8 @@ void move(int lPower, int rPower);
  * @note 如不填入刹车模式, 使用brake模式进行刹车
  */
 void brake(motor_brake_mode_e brakeMode = E_MOTOR_BRAKE_BRAKE);
+
+void moveEnc(int distance, int timeout);
 
 }
 #endif
