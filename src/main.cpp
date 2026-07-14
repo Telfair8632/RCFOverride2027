@@ -139,13 +139,13 @@ void autoSelector() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void opcontrol(){
+void opcontrol() {
     bool clipState = true;
     int curLiftGear = 0;
 
     autoSelector();
 
-	while(true){
+	while(true) {
         pros::lcd::print(6, "enc: %d", chassis::getPosition()); 
         pros::lcd::register_btn1_cb(chassis::reset); 
 		int ch3 = master.get_analog(ANALOG_LEFT_Y);

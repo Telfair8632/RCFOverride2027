@@ -1,12 +1,12 @@
 #include "haws/motorcontrol/chassis.h"
 #include "haws/config.hpp"
-#include "pros/colors.h"
 #include "pros/colors.hpp"
 #include "pros/llemu.hpp"
 #include "pros/motors.h"
 #include "haws/motorcontrol/pid.h"
 #include "pros/rtos.hpp"
 #include "pros/screen.hpp"
+#include <cmath>
 
 namespace chassis
 {
@@ -86,7 +86,7 @@ void moveEnc(int distance, int timeout, int maxPower, motor_brake_mode_e brakeMo
     pros::lcd::print(7, "moveEnc: [%d / %d] %dms", current, distance, pros::millis() - start_time);
 }
 
-void turnGyro(int angle, int timeout, int maxPower) {
+void turnGyroPID(int angle, int timeout, int maxPower) {
     double kp = 1.0;
     double ki = 0.03; // 0.03
     double kd = 1.0; // 4.3
@@ -101,13 +101,13 @@ void turnGyro(int angle, int timeout, int maxPower) {
     pid.SetDerivativeTolerance(4.5);
 
     // Draw the baseline.
-      double draw_amplifier = 230.0 / abs(angle);
-      pros::screen::set_eraser(Color::black);
-      pros::screen::erase();
-      pros::screen::set_pen(Color::white);
-      pros::screen::draw_line(0, abs(angle) * draw_amplifier,
+    double draw_amplifier = 230.0 / abs(angle);
+    pros::screen::set_eraser(Color::black);
+    pros::screen::erase();
+    pros::screen::set_pen(Color::white);
+    pros::screen::draw_line(0, abs(angle) * draw_amplifier,
                             600, abs(angle) * draw_amplifier);
-      pros::screen::set_pen(Color::blue);
+    pros::screen::set_pen(Color::blue);
 
     // Start the PID loop.
     uint32_t start_time = pros::millis();
@@ -141,7 +141,50 @@ void turnGyro(int angle, int timeout, int maxPower) {
         pros::delay(10);
     }
     brake(pros::E_MOTOR_BRAKE_HOLD);
-    pros::lcd::print(7, "turnGyro: [%.2f / %d] %dms", current, angle, pros::millis() - start_time);
+    pros::lcd::print(7, "turnGyroPID: [%.2f / %d] %dms", current, angle, pros::millis() - start_time);
+}
+
+void turnGyro(float angle, int timeout, int maxPower, motor_brake_mode_e brakeMode) {
+    float current = 0.0;
+    int sign = 1;
+    float power = 0;
+    uint32_t start_time = pros::millis();
+    float start_angle = sensor_gyro.get_rotation();
+    float target = (angle - start_angle) * 10.0;
+    // 记录符号，控制输出都以第一象限计算
+    if (target < 0) {
+        sign = -1;
+        target = -target;
+    }
+
+    reset();
+    while (true) {
+        // 更新当前编码器值
+        current = fabs(sensor_gyro.get_rotation() - start_angle) * 10;
+
+        // 退出条件判断（小于3度）
+        if (target - current <= 30 || pros::millis() - start_time > timeout) {
+            break;
+        }
+
+        // 计算输出功率
+        if (current < target / 2) {
+            power = TURN_MIN_V + fabs(sqrt(current * 2 * TURN_ACC));
+        } else {
+            power = fabs(sqrt((target - current) * 2 * TURN_ACC));
+        }
+        power = CONSTRAIN(power, TURN_MIN_V, maxPower);
+
+        // 底盘输出
+        move(power * sign, - power * sign);
+
+        pros::delay(15);
+    }
+
+    if (brakeMode != pros::E_MOTOR_BRAKE_INVALID) {
+        brake(brakeMode);
+    }
+    pros::lcd::print(7, "turnGyro: [%.2f / %.2f] %dms", sensor_gyro.get_rotation(), angle, pros::millis() - start_time);
 }
 
 }

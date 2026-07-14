@@ -5,7 +5,7 @@
 
 // Constructor
 PID::PID(double new_kp, double new_ki, double new_kd)
-  : arrived(false), 
+    :arrived(false), 
     arrive(true), 
     small_error_tolerance(1), 
     big_error_tolerance(3), 
@@ -16,145 +16,143 @@ PID::PID(double new_kp, double new_ki, double new_kd)
     first_time(true), 
     integral_range(0), 
     integral_max(500) {
-  // Set up the Coefficient.
-  kp = new_kp;
-  ki = new_ki;
-  kd = new_kd;
-  // Not arrived initially.
-  arrived = false;
+    // Set up the Coefficient.
+    kp = new_kp;
+    ki = new_ki;
+    kd = new_kd;
+    // Not arrived initially.
+    arrived = false;
 }
 
 void PID::SetCoefficient(double new_kp, double new_ki, double new_kd) {
-  kp = new_kp;
-  ki = new_ki;
-  kd = new_kd;
+    kp = new_kp;
+    ki = new_ki;
+    kd = new_kd;
 }
 
 void PID::SetTarget(double new_target) { 
-  target = new_target;
+    target = new_target;
 }
 
 void PID::SetSmallBigErrorTolerance(double new_small_error_tolerance, double new_big_error_tolerance) { 
-  small_error_tolerance = new_small_error_tolerance;
-  big_error_tolerance = new_big_error_tolerance;
+    small_error_tolerance = new_small_error_tolerance;
+    big_error_tolerance = new_big_error_tolerance;
 }
 
 void PID::SetIntegralMax(double new_integral_max) { 
-  integral_max = new_integral_max;
+    integral_max = new_integral_max;
 }
 
 void PID::SetIntegralRange(double new_integral_range) { 
-  integral_range = new_integral_range;
+    integral_range = new_integral_range;
 }
 
 void PID::ClearSumError() { 
-  sum_error = 0;
+    sum_error = 0;
 }
 
 void PID::SetDerivativeTolerance(double new_derivative_tolerance) { 
-  derivative_tolerance = new_derivative_tolerance;
+    derivative_tolerance = new_derivative_tolerance;
 }
 
 void PID::SetSmallBigErrorDuration(double new_small_error_duration, double new_big_error_duration) { 
-  small_error_duration = new_small_error_duration;
-  big_error_duration = new_big_error_duration;
+    small_error_duration = new_small_error_duration;
+    big_error_duration = new_big_error_duration;
 }
 
 void PID::SetArrive(bool new_arrive) {
-  arrive = new_arrive;
+    arrive = new_arrive;
 }
 
 bool PID::TargetArrived() { 
-  return arrived;
+    return arrived;
 }
 
 double PID::GetOutput() { 
-  return output;
+    return output;
 }
 
 int PID::Sign(double number) {
-  if (number > 0) {
-    return 1;
-  } else if (number < 0) {
-    return -1;
-  }
-  return 0;
+    if (number > 0) {
+        return 1;
+    } else if (number < 0) {
+        return -1;
+    }
+    return 0;
 }
 
 double PID::Update(double input) {
-  // Calculate current error
-  current_error = target - input; 
-  if (first_time) {
-    // First time is tricky.
-    first_time = false;
+    // Calculate current error
+    current_error = target - input; 
+    if (first_time) {
+        // First time is tricky.
+        first_time = false;
 
-    // Need to skip derivative. 
-    previous_error = current_error;
-    sum_error = 0;
-    small_check_time = pros::millis();
-    big_check_time = pros::millis();
-  }
-
-  // Calculate proportional
-  proportional = kp * current_error;
-  
-  // Calculate derivative
-  derivative = kd * (current_error - previous_error); 
-  
-  // Record current error
-  previous_error = current_error; 
-  
-  if (fabs(current_error) >= integral_range && integral_range != 0) { 
-    // integral = 0 if proportinal > proportional_range
-    sum_error = 0;
-  } else { 
-    sum_error += current_error;
-    if (fabs(sum_error) * ki > integral_max && integral_max != 0) {
-      // Limit integral to integral_max
-      sum_error = Sign(sum_error) * integral_max / ki;
+        // Need to skip derivative. 
+        previous_error = current_error;
+        sum_error = 0;
+        small_check_time = pros::millis();
+        big_check_time = pros::millis();
     }
-  }
 
-  if (Sign(sum_error) != Sign(current_error) || 
-      (fabs(current_error) <= small_error_tolerance)) {
-    // Clear integral if overshoot or current_error is very small. 
-    // This is to stablize the movement.
-    sum_error = 0;
-  }
-
-
-
-  // Calculate integral
-  integral = ki * sum_error;
+    // Calculate proportional
+    proportional = kp * current_error;
   
-  if (arrive == true && fabs(current_error) <= small_error_tolerance && 
-      fabs(derivative) <= derivative_tolerance) { 
-    // Exit when staying in tolerated region and 
-    // maintaining a low enough speed for enough time
-    if (pros::millis() - small_check_time >= small_error_duration) {
-      arrived = true;
-    }
-  } else {
-    small_check_time = pros::millis();
-  }
-
-  if (arrive == true && fabs(current_error) <= big_error_tolerance && 
-      fabs(derivative) <= derivative_tolerance) { 
-    // Exit when staying in tolerated region and 
-    // maintaining a low enough speed for enough time
-    if (pros::millis() - big_check_time >= big_error_duration) {
-      arrived = true;
-    }
-  } else {
-    big_check_time = pros::millis();
-  }
-
-  output = proportional + integral + derivative;
+    // Calculate derivative
+    derivative = kd * (current_error - previous_error); 
   
-  if (output < 10) {
-    output = 10;
-  }
+    // Record current error
+    previous_error = current_error; 
+  
+    if (fabs(current_error) >= integral_range && integral_range != 0) { 
+        // integral = 0 if proportinal > proportional_range
+        sum_error = 0;
+    } else { 
+        sum_error += current_error;
+        if (fabs(sum_error) * ki > integral_max && integral_max != 0) {
+            // Limit integral to integral_max
+            sum_error = Sign(sum_error) * integral_max / ki;
+        }
+    }
 
-  return output;
+    if (Sign(sum_error) != Sign(current_error) || 
+        (fabs(current_error) <= small_error_tolerance)) {
+        // Clear integral if overshoot or current_error is very small. 
+        // This is to stablize the movement.
+        sum_error = 0;
+    }
+
+    // Calculate integral
+    integral = ki * sum_error;
+  
+    if (arrive == true && fabs(current_error) <= small_error_tolerance && 
+        fabs(derivative) <= derivative_tolerance) { 
+        // Exit when staying in tolerated region and 
+        // maintaining a low enough speed for enough time
+        if (pros::millis() - small_check_time >= small_error_duration) {
+            arrived = true;
+        }
+    } else {
+        small_check_time = pros::millis();
+    }
+
+    if (arrive == true && fabs(current_error) <= big_error_tolerance && 
+        fabs(derivative) <= derivative_tolerance) { 
+        // Exit when staying in tolerated region and 
+        // maintaining a low enough speed for enough time
+        if (pros::millis() - big_check_time >= big_error_duration) {
+            arrived = true;
+        }
+    } else {
+        big_check_time = pros::millis();
+    }
+
+    output = proportional + integral + derivative;
+  
+    if (output < 10) {
+        output = 10;
+    }
+
+    return output;
 }
 
