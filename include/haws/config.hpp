@@ -8,8 +8,8 @@ using namespace pros;
 
 #define master Controller(pros::E_CONTROLLER_MASTER)
 
-const pros::MotorGroup motor_left({6,7,-3});
-const pros::MotorGroup motor_right({-10,-2,8});
+const pros::MotorGroup motor_left({-10,-2,8});
+const pros::MotorGroup motor_right({6,7,-3});
 
 const pros::MotorGroup motor_lift({13,-14});
 const pros::Motor motor_roller(-18);

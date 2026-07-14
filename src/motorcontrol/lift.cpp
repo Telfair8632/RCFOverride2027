@@ -81,9 +81,11 @@ void setGear(int gear) {
     // 只有在设置的档位与当前不同时有效
     if (gear != getGear()) {
         // 设置新的档位值
-        pros::lcd::print(0, "set gear: %d", gear);
+        pros::lcd::print(0, "set gear: %d", gear);    
         // logger::log("set gear: " + std::to_string(gear));
-        setGear(gear);
+        liftGearMutex.take(100);
+        liftGear = gear;
+        liftGearMutex.give();
         // 若当前有线程正在运行, 释放资源
         if (getTaskEnable()) {
             setTaskEnable(false);

@@ -14,8 +14,8 @@ void initialize() {
 	
     motor_left.set_brake_mode(E_MOTOR_BRAKE_COAST);
     motor_right.set_brake_mode(E_MOTOR_BRAKE_COAST);
-    motor_lift.set_brake_mode(E_MOTOR_BRAKE_HOLD);
-    motor_arm.set_brake_mode(E_MOTOR_BRAKE_COAST);
+    motor_lift.set_brake_mode_all(E_MOTOR_BRAKE_HOLD);
+    motor_arm.set_brake_mode(E_MOTOR_BRAKE_HOLD);
 }
 
 /**
@@ -146,6 +146,8 @@ void opcontrol(){
     autoSelector();
 
 	while(true){
+        pros::lcd::print(6, "enc: %d", chassis::getPosition()); 
+        pros::lcd::register_btn1_cb(chassis::reset); 
 		int ch3 = master.get_analog(ANALOG_LEFT_Y);
 		int ch1 =master.get_analog(ANALOG_RIGHT_X);
         bool L1 = master.get_digital(DIGITAL_L1);
@@ -178,10 +180,8 @@ void opcontrol(){
         // 小手
         if (btnA) {
             motor_arm.move(50);
-            motor_arm.set_brake_mode(E_MOTOR_BRAKE_HOLD);
         } else if (btnB) {
             motor_arm.move(-50);
-            motor_arm.set_brake_mode(E_MOTOR_BRAKE_COAST);
         } else {
             motor_arm.brake();
         }

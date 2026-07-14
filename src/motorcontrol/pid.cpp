@@ -150,6 +150,10 @@ double PID::Update(double input) {
   }
 
   output = proportional + integral + derivative;
+  
+  if (output < 10) {
+    output = 10;
+  }
 
   return output;
 }

@@ -87,14 +87,14 @@ void moveEnc(int distance, int timeout, int maxPower, motor_brake_mode_e brakeMo
 }
 
 void turnGyro(int angle, int timeout, int maxPower) {
-    double kp = 0.5;
+    double kp = 1.0;
     double ki = 0.03; // 0.03
-    double kd = 3.45; // 4.3
+    double kd = 1.0; // 4.3
     PID pid = PID(kp, ki, kd);
 
     pid.SetTarget(angle);
-    pid.SetIntegralMax(0);
-    pid.SetIntegralRange(5);
+    pid.SetIntegralMax(10);
+    pid.SetIntegralRange(10);
 
     pid.SetSmallBigErrorTolerance(1, 3);
     pid.SetSmallBigErrorDuration(50, 250);
@@ -141,7 +141,7 @@ void turnGyro(int angle, int timeout, int maxPower) {
         pros::delay(10);
     }
     brake(pros::E_MOTOR_BRAKE_HOLD);
-    pros::lcd::print(7, "turnGyro: [%d / %d] %dms", current, angle, pros::millis() - start_time);
+    pros::lcd::print(7, "turnGyro: [%.2f / %d] %dms", current, angle, pros::millis() - start_time);
 }
 
 }

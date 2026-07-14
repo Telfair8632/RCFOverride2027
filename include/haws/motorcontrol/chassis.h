@@ -31,6 +31,8 @@ void move(int lPower, int rPower);
  */
 void brake(motor_brake_mode_e brakeMode = E_MOTOR_BRAKE_BRAKE);
 
+int getPosition();
+
 /**
  * @brief 编码器控制底盘直行函数
  * @param distance  移动的距离(电机的编码器目标值, 正数为前进, 负数为后退)
