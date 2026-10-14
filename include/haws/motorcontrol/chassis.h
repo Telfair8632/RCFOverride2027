@@ -6,11 +6,11 @@
 using namespace pros;
 
 namespace chassis {
-#define STRIGHT_ACC 4
+#define STRIGHT_ACC 4//直行
 #define STRIGHT_MAX_V 100
 #define STRIGHT_MIN_V 25
-#define TURN_ACC 10
-#define TURN_MAX_V 100
+#define TURN_ACC 10//转向 加速度
+#define TURN_MAX_V 100//
 #define TURN_MIN_V 20
 
 /**
@@ -62,7 +62,7 @@ void turnGyroPID(int angle, int timeout, int maxPower = TURN_MAX_V);
  * @param maxPower  拓展参数: 底盘移动的最大功率(默认为100, 可填入0至100的数值, 需为正数)
  * @param brakeMode 拓展参数: 移动至目标值后的刹车方式(默认为brake)
  */
-void turnGyro(int angle, int timeout, int maxPower = TURN_MAX_V, motor_brake_mode_e brakeMode = E_MOTOR_BRAKE_BRAKE);
+void turnGyro(float angle, int timeout, int maxPower = TURN_MAX_V, motor_brake_mode_e brakeMode = E_MOTOR_BRAKE_BRAKE);
 
 }
 #endif
