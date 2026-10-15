@@ -36,3 +36,7 @@ Requires the [PROS CLI](https://pros.cs.purdue.edu/v5/getting-started/):
 pros make      # build
 pros upload    # flash to the brain
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE). © 2026 RCF Override 2027 Team.
