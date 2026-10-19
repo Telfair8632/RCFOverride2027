@@ -6,7 +6,7 @@ using namespace lift;
 void redLeft1() {
     
     //撞杆两下
-    lift::setGear(1); 
+    lift::liftToPosition(950);
     // chassis::moveEnc(-300,3000);
     // delay(300);
     // chassis::moveEnc(340,3000);
@@ -23,7 +23,7 @@ void redLeft1() {
     delay(470);
     motor_arm.move(0);
     chassis::moveEnc(625,3000);
-    lift::setGear(0); 
+    lift::liftToPosition(5);
     delay(1000);
     digit_clip.set_value(true);
     delay(500);

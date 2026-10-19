@@ -14,7 +14,7 @@ void initialize() {
 	
     motor_left.set_brake_mode(E_MOTOR_BRAKE_COAST);
     motor_right.set_brake_mode(E_MOTOR_BRAKE_COAST);
-    motor_lift.set_brake_mode_all(E_MOTOR_BRAKE_HOLD);
+    motor_group_lift.set_brake_mode_all(E_MOTOR_BRAKE_HOLD);
     motor_arm.set_brake_mode(E_MOTOR_BRAKE_HOLD);
 }
 
@@ -141,7 +141,6 @@ void autoSelector() {
  */
 void opcontrol() {
     bool clipState = true;
-    int curLiftGear = 0;
 
     autoSelector();
 
@@ -154,8 +153,6 @@ void opcontrol() {
         bool L2 = master.get_digital(DIGITAL_L2);
         bool R1 = master.get_digital_new_press(DIGITAL_R1);
         bool R2 = master.get_digital(DIGITAL_R2);
-        bool btnU = master.get_digital_new_press(DIGITAL_UP);
-        bool btnD = master.get_digital_new_press(DIGITAL_DOWN);
         bool btnA = master.get_digital(DIGITAL_A);
         bool btnB = master.get_digital(DIGITAL_B);
         
@@ -163,17 +160,11 @@ void opcontrol() {
         
         // 升降
         if (L1) {
-            lift::lift(100);
+            lift::lift_S(90);
         } else if (L2) {
-            lift::lift(-100);
+            lift::lift_S(-70);
         } else {
-            lift::lift(0);
-        }
-        if (btnU) {
-            lift::setGear(CONSTRAIN(lift::getGear() + 1, 0, 4));
-        }
-        if (btnD) {
-            lift::setGear(CONSTRAIN(lift::getGear() - 1, 0, 4));
+            lift::lift_S(0);
         }
 
 

@@ -7,7 +7,8 @@ Competition code for our team's VEX V5 robot in the **RCF Override (2026–27) s
 | Path | Contents |
 |---|---|
 | `src/auto/` | 9 competition autonomous routines — programming skills plus red/blue left/right, two variants each |
-| `src/motorcontrol/` | `chassis` (tank drive), `lift` (with gear positions), and a shared `pid` controller |
+| `src/motorcontrol/` | `chassis` (tank drive), `lift` (position-based control with rotation sensor), and a shared `pid` controller |
+| `src/display/` | `logger` — thread-safe on-brain LCD log viewer with paging |
 | `src/main.cpp` | Competition template: initialization, autonomous dispatch, driver control, autonomous selector |
 | `include/haws/` | Hardware configuration (motor groups, IMU, pneumatics) and module headers |
 
@@ -22,7 +23,8 @@ Competition code for our team's VEX V5 robot in the **RCF Override (2026–27) s
 |---|---|
 | Drive — left | motor group −15, −14, 13 |
 | Drive — right | motor group 16, 12, −11 |
-| Lift | motor group −8, 9 |
+| Lift | motor group 3, −4 |
+| Lift rotation sensor | −2 |
 | Roller intake | −20 |
 | Arm | 4 |
 | IMU (inertial) | 18 |
