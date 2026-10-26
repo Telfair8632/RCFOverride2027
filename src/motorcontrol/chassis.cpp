@@ -12,25 +12,25 @@ namespace chassis
 {
 
 void reset() {
-    motor_left.tare_position_all();
-    motor_right.tare_position_all();
+    motor_group_left.tare_position_all();
+    motor_group_right.tare_position_all();
 }
 
 void move(int lPower, int rPower) {
-    motor_left.move(lPower * 1.27);
-    motor_right.move(rPower * 1.27);
+    motor_group_left.move(lPower * 1.27);
+    motor_group_right.move(rPower * 1.27);
 }
 
 void brake(motor_brake_mode_e brakeMode) {
-    motor_left.set_brake_mode_all(brakeMode);
-    motor_right.set_brake_mode_all(brakeMode);
-    motor_left.brake();
-    motor_right.brake();
+    motor_group_left.set_brake_mode_all(brakeMode);
+    motor_group_right.set_brake_mode_all(brakeMode);
+    motor_group_left.brake();
+    motor_group_right.brake();
 }
 
 int getPosition() {
-    std::vector<double> leftPositions = motor_left.get_position_all();
-    std::vector<double> rightPositions = motor_right.get_position_all();
+    std::vector<double> leftPositions = motor_group_left.get_position_all();
+    std::vector<double> rightPositions = motor_group_right.get_position_all();
 
     int total = 0;
     int count = 0;

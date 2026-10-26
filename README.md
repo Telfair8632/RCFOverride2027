@@ -21,14 +21,15 @@ Competition code for our team's VEX V5 robot in the **RCF Override (2026–27) s
 
 | Subsystem | Ports |
 |---|---|
-| Drive — left | motor group −15, −14, 13 |
-| Drive — right | motor group 16, 12, −11 |
+| Drive — left | motor group −17, −15, 14 |
+| Drive — right | motor group 19, −16, 20 |
 | Lift | motor group 3, −4 |
 | Lift rotation sensor | −2 |
-| Roller intake | −20 |
-| Arm | 4 |
+| Roller intake | motor group 5, −10 |
+| Clip | −7 |
+| Toggle | 6 |
 | IMU (inertial) | 18 |
-| Pneumatic clip | ADI port B |
+| Pneumatic | ADI port B |
 
 ## Building
 

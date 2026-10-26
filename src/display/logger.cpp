@@ -89,6 +89,9 @@ void Logger::append(string content) {
 }
 
 void Logger::info(const char* format, ...) {
+#ifndef DEBUG
+    return;
+#endif
     va_list args;
     va_start(args, format);
     string content = "";

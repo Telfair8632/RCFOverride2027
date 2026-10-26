@@ -6,17 +6,20 @@ using namespace pros;
 #define _HAWS_CONFIG_H_
 #define CONSTRAIN(x, lower, upper) ((x)<(lower)?(lower):((x)>(upper)?(upper):(x)))
 
-#define master Controller(pros::E_CONTROLLER_MASTER)
+#define controller Controller(pros::E_CONTROLLER_MASTER)
 
-const pros::MotorGroup motor_left({-15,-14,13});
-const pros::MotorGroup motor_right({16,12,-11});
+const pros::MotorGroup motor_group_left({-17,-15,14});
+const pros::MotorGroup motor_group_right({19,-16,20});
 
 const pros::MotorGroup motor_group_lift({3,-4});
-const pros::Motor motor_roller(-20);
-const pros::Motor motor_arm(4);
+const pros::MotorGroup motor_group_roller({5,-10});
+const pros::Motor motor_clip(-7);
+const pros::Motor motor_toggle(6);
 
 const Imu sensor_gyro(18);   // 陀螺仪
 const Rotation sensor_lift(-2);  // 旋转 -- 升降
 
-const pros::adi::DigitalOut digit_clip('B', false);
+const pros::adi::DigitalOut pneumatic_b('B', false); // 气动 -- B口, 上电默认低电平(收回)
+
+
 #endif

@@ -19,13 +19,10 @@ void redLeft1() {
     delay(100);
     turnGyro(-70,3000);
     delay(100);
-    motor_arm.move(50);
-    delay(470);
-    motor_arm.move(0);
     chassis::moveEnc(625,3000);
     lift::liftToPosition(5);
     delay(1000);
-    digit_clip.set_value(true);
+    pneumatic_b.set_value(true);
     delay(500);
 
     // //后退取第一个桩夹住
@@ -38,7 +35,7 @@ void redLeft1() {
     chassis::moveEnc(440,3000);
     chassis::moveEnc(400,3000,30);
     delay(200);
-    digit_clip.set_value(false);
+    pneumatic_b.set_value(false);
         //夹住后抬升再往前走一点
     lift::lift(100);
     delay(340);
@@ -56,7 +53,7 @@ void redLeft1() {
     motor_arm.move(0);
     delay(100);
 
-    // digit_clip.set_value(true);
+    // pneumatic_b.set_value(true);
 
 
     //chassis::moveEnc(1200,3000);
