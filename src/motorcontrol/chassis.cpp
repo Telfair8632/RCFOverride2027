@@ -1,5 +1,6 @@
 #include "haws/motorcontrol/chassis.h"
 #include "haws/config.hpp"
+#include "haws/display/logger.h"
 #include "pros/colors.hpp"
 #include "pros/llemu.hpp"
 #include "pros/motors.h"
@@ -7,6 +8,7 @@
 #include "pros/rtos.hpp"
 #include "pros/screen.hpp"
 #include <cmath>
+#include <cstdint>
 
 namespace chassis
 {
@@ -83,7 +85,83 @@ void moveEnc(int distance, int timeout, int maxPower, motor_brake_mode_e brakeMo
     if (brakeMode != pros::E_MOTOR_BRAKE_INVALID) {
         brake(brakeMode);
     }
-    pros::lcd::print(7, "moveEnc: [%d / %d] %dms", current, distance, pros::millis() - start_time);
+    // pros::lcd::print(7, "moveEnc: [%d / %d] %dms", current, distance, pros::millis() - start_time);
+}
+
+void moveEnc_S(int distance, int maxPower) {
+    int current = 0;
+    int sign = 1;
+    float power = 0;
+    bool isStack = false;
+    uint32_t start_time = pros::millis();
+    uint32_t stack_time = 0;
+    uint32_t current_time = 0;
+    // 记录符号，控制输出都以第一象限计算
+    if (distance < 0) {
+        sign = -1;
+        distance = -distance;
+    }
+
+    // Draw the baseline.
+    double draw_amplifier = 230.0 / abs(100);
+    pros::screen::set_eraser(Color::black);
+    pros::screen::erase();
+    pros::screen::set_pen(Color::white);
+    pros::screen::draw_line(0, abs(100) * draw_amplifier,
+                            600, abs(100) * draw_amplifier);
+    pros::screen::set_pen(Color::blue);
+    double last = 0; // for draw line
+    int index = 1; // for draw line
+
+    reset();
+    while (true) {
+        // 更新当前编码器值
+        current = abs(getPosition());
+        current_time = pros::millis();
+
+        // 退出条件判断
+        if (distance - current <= 20) {
+            break;
+        }
+
+        // 计算输出功率
+        int err = distance - current;
+        power = CONSTRAIN(err * STRIGHT_S_DCC, STRIGHT_MIN_V, maxPower);
+        if (current_time - start_time < STRIGHT_S_ACC_TIME) {
+            power = power * current_time / STRIGHT_S_ACC_TIME;
+        }
+        // 底盘输出
+        // Logger::getInstance().info("%d", power);
+        move(power * sign, power * sign);
+
+        // Draw line
+        pros::screen::draw_line(
+            index * 3, fabs(last) * draw_amplifier,
+            (index + 1) * 3, fabs(power * draw_amplifier));
+        last = power;
+        index++;
+
+        // 电机卡顿判断
+        if (current_time > STRIGHT_S_ACC_TIME) {
+            if (motor_group_left.get_actual_velocity() < 5 &&
+                motor_group_right.get_actual_velocity() < 5) {
+                if (!isStack) {
+                    isStack = true;
+                    stack_time = pros::millis();
+                }
+            } else {
+                isStack = false;
+            }
+        }
+        if (current_time - stack_time > 3000) {
+            break;
+        }
+
+        pros::delay(10);
+    }
+    brake(E_MOTOR_BRAKE_BRAKE);
+    pros::delay(200);
+    // pros::lcd::print(7, "moveEnc: [%d / %d]", getPosition(), distance);
 }
 
 void turnGyroPID(int angle, int timeout, int maxPower) {
@@ -141,7 +219,7 @@ void turnGyroPID(int angle, int timeout, int maxPower) {
         pros::delay(10);
     }
     brake(pros::E_MOTOR_BRAKE_HOLD);
-    pros::lcd::print(7, "turnGyroPID: [%.2f / %d] %dms", current, angle, pros::millis() - start_time);
+    // pros::lcd::print(7, "turnGyroPID: [%.2f / %d] %dms", current, angle, pros::millis() - start_time);
 }
 
 void turnGyro(float angle, int timeout, int maxPower, motor_brake_mode_e brakeMode) {
@@ -171,7 +249,7 @@ void turnGyro(float angle, int timeout, int maxPower, motor_brake_mode_e brakeMo
         if (current < target / 2) {
             power = TURN_MIN_V + fabs(sqrt(current * 2 * TURN_ACC));
         } else {
-            power = fabs(sqrt((target - current) * 2 * TURN_ACC));
+            power = fabs(sqrt((target - current) * 2 * TURN_DCC));
         }
         power = CONSTRAIN(power, TURN_MIN_V, maxPower);
 
@@ -184,7 +262,57 @@ void turnGyro(float angle, int timeout, int maxPower, motor_brake_mode_e brakeMo
     if (brakeMode != pros::E_MOTOR_BRAKE_INVALID) {
         brake(brakeMode);
     }
-    pros::lcd::print(7, "turnGyro: [%.2f / %.2f] %dms", sensor_gyro.get_rotation(), angle, pros::millis() - start_time);
+    // pros::lcd::print(7, "turnGyro: [%.2f / %.2f] %dms", sensor_gyro.get_rotation(), angle, pros::millis() - start_time);
 }
+
+void rushGyro(int angle, int power) {
+    float err = angle - sensor_gyro.get_rotation();
+    int timer = 0;
+    if (err > 0) {
+        while (err > 3) {
+            chassis::move(power, -power);
+            pros::delay(15);
+            timer += 15;
+            err = angle - sensor_gyro.get_rotation();
+        }
+    } else {
+        while (err < -3) {
+            chassis::move(-power, power);
+            pros::delay(15);
+            timer += 15;
+            err = angle - sensor_gyro.get_rotation();
+        }
+    }
+    chassis::move(0, 0);
+    chassis::brake();
+    pros::delay(10);
+    // Logger::getInstance().info("rushGyo: [%f / %d], time=%Ds", sensor_gyro.get_rotation(), angle, double (timer / 1000.0));
+    Logger::getInstance().info("rushGyro: [%f / %d]", sensor_gyro.get_rotation(), angle);
+}
+
+// void findObject(int angleRange) {
+//     int minDistance = sensor_dis.get_distance();
+//     float currentAngle = sensor_gyro.get_rotation();
+//     float minDistanceAngle = currentAngle;
+//     rushGyro(currentAngle - angleRange,TURN_MIN_V);
+//     while (true) {
+//         if (sensor_gyro.get_rotation() > currentAngle + angleRange) {
+//             break;
+//         }
+
+//         move(TURN_MIN_V, -TURN_MIN_V);
+
+//         int currentDistance = sensor_dis.get_distance();
+//         if (currentDistance < minDistance) {
+//             minDistance = currentDistance;
+//             minDistanceAngle = sensor_gyro.get_rotation();
+//             Logger::getInstance().info("update Angle: dis: %d, %f", minDistance, minDistanceAngle);
+//         }
+
+//         pros::delay(10);
+//     }
+
+//     rushGyro(minDistanceAngle - 1, TURN_MIN_V);
+// }
 
 }

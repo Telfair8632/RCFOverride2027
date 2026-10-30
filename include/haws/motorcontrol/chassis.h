@@ -7,11 +7,15 @@ using namespace pros;
 
 namespace chassis {
 #define STRIGHT_ACC 4//直行
-#define STRIGHT_MAX_V 100
-#define STRIGHT_MIN_V 25
-#define TURN_ACC 10//转向 加速度
-#define TURN_MAX_V 100//
-#define TURN_MIN_V 20
+#define STRIGHT_MAX_V 40
+#define STRIGHT_MIN_V 10
+#define STRIGHT_S_DCC 0.08
+#define STRIGHT_S_ACC_TIME 1000
+#define TURN_ACC 1.0//转向 加速度,10
+#define TURN_DCC 0.8
+#define TURN_MAX_V 100//100
+#define TURN_MIN_V 30//20
+#define STACK_THREADHOLD 1000
 
 /**
  * @brief 重置所有底盘电机编码器
@@ -47,6 +51,7 @@ int getPosition();
  */
 void moveEnc(int distance, int timeout, int maxPower = STRIGHT_MAX_V, motor_brake_mode_e brakeMode = E_MOTOR_BRAKE_BRAKE);
 
+void moveEnc_S(int distance, int maxPower = STRIGHT_MAX_V);
 /**
  * @brief 使用PID+陀螺仪控制底盘转向函数
  * @param angle     底盘朝向的角度值(陀螺仪相对初始位置的值)
@@ -64,5 +69,8 @@ void turnGyroPID(int angle, int timeout, int maxPower = TURN_MAX_V);
  */
 void turnGyro(float angle, int timeout, int maxPower = TURN_MAX_V, motor_brake_mode_e brakeMode = E_MOTOR_BRAKE_BRAKE);
 
+void rushGyro(int angle, int power);
+
+void findObject(int angleRange);
 }
 #endif
